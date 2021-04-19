@@ -28,7 +28,10 @@ get_env(){
 kill_connect_ssh_in_port(){
 
     # kill connect ssh
-    ps -ef | grep ssh | grep -v -e grep -e root | grep sbase-dev-main | grep $port_connect:$sbase_host:$port_connect | awk '{print "sudo kill -9", $2}' | sh
+    ps -ef | grep ssh | grep -v -e grep -e root | grep $SBASE_HOST | grep $port_connect:localhost:$port_connect | awk '{print "sudo kill -9", $2}' | sh
+
+    ps -ef | grep ssh | grep -v -e grep -e root | grep $SBASE_STAGING_HOST | grep $port_connect:10.56.2.213:$port_connect | awk '{print "sudo kill -9", $2}' | sh
+
 
     #pid=$(lsof -ti tcp:$port_connect)
     #[ ! -z "$pid" ] && echo "kill process using port $port_connect" && echo $pid | xargs kill
@@ -67,7 +70,6 @@ sbase_start_mongo(){
 
     connect
     #$SSH -fN -L 27017:localhost:27017 $SBASE_PORT $SBASE_HOST
-    #$SSH -fN -L port_connect:$host:port_connect -p $SBASE_PORT $sbase_host
 }
 
 sbase_start_redis(){
@@ -77,7 +79,6 @@ sbase_start_redis(){
     echo "redis" $1
     
     connect
-    #$SSH -fN -L port_connect:$host:port_connect -p $SBASE_PORT $sbase_host
 }
 
 sbase_start_postgres(){
@@ -86,7 +87,6 @@ sbase_start_postgres(){
     echo "postgres" $1
     
     connect
-    #$SSH -fN -L port_connect:$host:port_connect -p $SBASE_PORT $sbase_host
 }
 
 sbase_start_elasticsearch(){
@@ -95,16 +95,14 @@ sbase_start_elasticsearch(){
     echo "elasticsearch" $1
     
     connect
-    #$SSH -fN -L port_connect:$host:port_connect -p $SBASE_PORT $sbase_host
 }
 
 sbase_start_rabbit(){
     get_env $1
-    port_connect=15672
+    port_connect=5672
     echo "rabbitmq" $1
     
     connect
-    #$SSH -fN -L port_connect:$host:port_connect -p $SBASE_PORT $sbase_host
 }
 
 connect(){
@@ -113,10 +111,15 @@ connect(){
 }
 
 sbase_start_db_tunneling() {
+    clear
     echo "tunnel dev"
 
     # mysql
     sbase_start_mysql dev
+    
+    #rabbit
+    sbase_start_rabbit dev
+
     # elasticsearch
     sbase_start_elasticsearch dev
     
@@ -127,8 +130,11 @@ sbase_start_db_tunneling() {
     sbase_start_postgres dev
     
     #Mongodb
-    #$SSH -fN -L 27017:localhost:27017 $SBASE_PORT $SBASE_HOST
     sbase_start_mongo dev
+
+    #sleep 1
+
+    #clear
 
 	echo "Done"
     
@@ -140,6 +146,7 @@ sbase_start_db_tunneling() {
 
 
 staging_start_db_tunneling() {
+    clear
     echo "tunnel staging"
     # mysql
     sbase_start_mysql stag
@@ -212,7 +219,6 @@ case $command in
     (rabbitmq)
         sbase_start_rabbit $env
         ;;
-
     (kill_process)
         kill_connect_ssh_in_port $command
         ;;
