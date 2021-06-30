@@ -19,7 +19,7 @@ get_env(){
 			sbase_host=$SBASE_STAGING_HOST
         	;;
         *)
-        	echo "require enviroment error"
+        	echo "require enviroment error"f
         	exit
 			;;
 	esac
@@ -29,6 +29,8 @@ kill_connect_ssh_in_port(){
 
     # kill connect ssh
     ps -ef | grep ssh | grep -v -e grep -e root | grep $SBASE_HOST | grep $port_connect:localhost:$port_connect | awk '{print "sudo kill -9", $2}' | sh
+    
+    ps -ef | grep ssh | grep -v -e grep -e root | grep $SBASE_HOST | grep $port_connect:192.168.113.13:$port_connect | awk '{print "sudo kill -9", $2}' | sh
 
     ps -ef | grep ssh | grep -v -e grep -e root | grep $SBASE_STAGING_HOST | grep $port_connect:10.56.2.213:$port_connect | awk '{print "sudo kill -9", $2}' | sh
 
@@ -74,10 +76,12 @@ sbase_start_mongo(){
 
 sbase_start_redis(){
     get_env $1
-
     port_connect=6379
-    echo "redis" $1
-    
+    case $1 in
+        stag|staging)
+            port_connect=6380
+    esac
+    echo "redis" $1 $port_connect
     connect
 }
 
@@ -118,7 +122,7 @@ sbase_start_db_tunneling() {
     sbase_start_mysql dev
     
     #rabbit
-    sbase_start_rabbit dev
+    #sbase_start_rabbit dev
 
     # elasticsearch
     sbase_start_elasticsearch dev
@@ -134,6 +138,7 @@ sbase_start_db_tunneling() {
 
     #sleep 1
 
+    sbase_start_rabbit dev	
     #clear
 
 	echo "Done"
